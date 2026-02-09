@@ -1,0 +1,23 @@
+- name: Precheck hosts before patching
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Show host summary
+      debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "IP: {{ ansible_default_ipv4.address | default('n/a') }}"
+
+    - name: Check free space on /
+      command: df -h /
+      register: df_root
+      changed_when: false
+
+    - name: Print disk space
+      debug:
+        var: df_root.stdout_lines
+

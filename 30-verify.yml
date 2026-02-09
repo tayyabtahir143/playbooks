@@ -1,0 +1,20 @@
+- name: Verify patch state
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Show uptime
+      command: uptime
+      changed_when: false
+
+    - name: Show last reboot
+      command: who -b
+      changed_when: false
+      failed_when: false
+
+    - name: Show OS release
+      command: cat /etc/os-release
+      changed_when: false
+      failed_when: false
+
