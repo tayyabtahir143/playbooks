@@ -1,0 +1,20 @@
+---
+- name: Summary
+  hosts: all
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: Ping for summary
+      ping:
+      register: ping_out
+      ignore_unreachable: true
+      ignore_errors: true
+
+    - name: Print summary line
+      debug:
+        msg: >-
+          host={{ inventory_hostname }}
+          reachable={{ (ping_out is not failed) | ternary('yes','no') }}
+          reboot_required={{ reboot_required | default('unknown') }}
+

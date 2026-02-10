@@ -1,0 +1,15 @@
+---
+# Use the AWX Machine Credential username/key (ansible user)
+ansible_user: ansible
+ansible_become: true
+ansible_become_method: sudo
+
+# Make unreachable hosts fail fast, and don't hang the whole run
+ansible_ssh_common_args: "-o ConnectTimeout=6 -o ConnectionAttempts=1 -o ServerAliveInterval=15 -o ServerAliveCountMax=2"
+ansible_timeout: 15
+
+# Reduce load & avoid patch storms
+patch_serial: 10
+patch_retries: 3
+patch_retry_delay: 10
+

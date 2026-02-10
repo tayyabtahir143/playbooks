@@ -1,23 +1,34 @@
-- name: Precheck hosts before patching
+---
+- name: Precheck (skip unreachable hosts)
   hosts: all
-  gather_facts: true
   become: true
+  gather_facts: false
+  serial: "{{ patch_serial | default(10) }}"
 
   tasks:
-    - name: Show host summary
-      debug:
-        msg:
-          - "Host: {{ inventory_hostname }}"
-          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-          - "Kernel: {{ ansible_kernel }}"
-          - "IP: {{ ansible_default_ipv4.address | default('n/a') }}"
+    - name: Quick connectivity check
+      ping:
+      register: ping_out
+      ignore_unreachable: true
+      ignore_errors: true
 
-    - name: Check free space on /
-      command: df -h /
-      register: df_root
-      changed_when: false
+    - name: End host if unreachable
+      meta: end_host
+      when: ping_out is failed
 
-    - name: Print disk space
+    - name: Gather minimal facts
+      setup:
+        gather_subset:
+          - "!all"
+          - "min"
+      register: facts_out
+      ignore_errors: true
+
+    - name: End host if facts failed
+      meta: end_host
+      when: facts_out is failed
+
+    - name: Show OS info
       debug:
-        var: df_root.stdout_lines
+        msg: "Host={{ inventory_hostname }} OS={{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }} Family={{ ansible_facts.os_family }}"
 
